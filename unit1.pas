@@ -38,13 +38,17 @@ var
   Form1: TForm1;
 
 implementation
-
+    uses Math; //for max
 {$R *.lfm}
 
 procedure TForm1.FormCreate(Sender: TObject);
 var
   HomeDir, FilePath: string;
   Lines: TStringList;
+  // to determine optimal font size
+  ScreenWidth, ScreenHeight: Integer;
+  BaseFontSize: Integer;
+  ScalingFactor: Double;
 begin
   // Hide the gutter (line numbers)
   SynEdit1.Gutter.Visible := False;
@@ -67,9 +71,26 @@ begin
 
     ClearCommandPosition;  // Set up our custom paint handler
   //SynEdit1.OnPaint := @SynEdit1Paint;
-  SynEdit1.Font.Size := 24;
+
   //SynEdit1.Options2 := SynEdit1.Options2 + [eoPersistentBlock];
   Form1.Caption:='heliko';
+
+  // SynEdit1.Font.Size := 24;
+   // Get primary screen dimensions
+  ScreenWidth := Screen.Width;
+  ScreenHeight := Screen.Height;
+
+  // Calculate base font size relative to screen height (adjust divisor as needed)
+  BaseFontSize := Round(ScreenHeight / 60); // Example: 24px for 1440p screen
+
+  // Adjust for DPI scaling
+  ScalingFactor := Screen.PixelsPerInch / 96; // 96 = standard DPI
+  BaseFontSize := Round(BaseFontSize * ScalingFactor);
+
+  // Clamp values to reasonable bounds
+  BaseFontSize := Max(12, Min(BaseFontSize, 36));
+
+  SynEdit1.Font.Size := BaseFontSize;
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
