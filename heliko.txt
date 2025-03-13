@@ -1,0 +1,27 @@
+;uname -a;
+
+;ls -al ^;
+
+
+;ls ~/*.jpg;
+
+;xv ^;
+
+;xv /home/inky/^;
+
+;ls /amp/tmp/films/japan/ ;
+
+
+/amp/tmp/films
+
+
+;find ^  -type f -name "*.mp4";
+
+
+;find ^ -mindepth 1 -maxdepth 1  ;
+
+;mplayer ^;
+
+
+To fix/clear clipboard/selection:
+;touch /tmp/blank && xclip -selection clipboard /tmp/blank;

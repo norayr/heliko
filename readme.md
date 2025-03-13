@@ -1,5 +1,3 @@
-
-
 # unix shell helper
 
 it is inspired of Oberon system and ACME.
@@ -7,6 +5,8 @@ it is inspired of Oberon system and ACME.
 keep your favorite commands, or commands you forget often, there.
 
 upon start it opens `~/heliko.txt` file.
+
+(copy `heliko.txt` from the current directory to your home)
 
 it contains some commands. commands are enclosed with semicolons.
 
