@@ -1,4 +1,4 @@
-                                                            unit Unit1;
+unit Unit1;
 
 {$mode objfpc}{$H+}
 
@@ -58,8 +58,13 @@ begin
 
   if (CharIdx < 1) or (CharIdx > Length(LineText)) then Exit;
 
+  // Find the starting semicolon before the cursor
   CmdStart := RPosEx(';', LineText, CharIdx);
-  CmdEnd := PosEx(';', LineText, CharIdx);
+  if CmdStart > 0 then
+    // Find the ending semicolon after the starting one
+    CmdEnd := PosEx(';', LineText, CmdStart + 1)
+  else
+    CmdEnd := -1;
 
   if (CmdStart > 0) and (CmdEnd > CmdStart) then
   begin
@@ -126,18 +131,18 @@ begin
     ExecuteUnixCommand(Cmd);
 end;
 
-
 procedure TForm1.ExecuteUnixCommand(const Cmd: string);
 var
   Proc: TProcess;
 begin
   Proc := TProcess.Create(nil);
   try
-    Proc.Executable := 'xterm';
-    Proc.Parameters.Add('-hold');
+    Proc.Executable := 'x-terminal-emulator'; // Use a generic terminal
     Proc.Parameters.Add('-e');
-    Proc.Parameters.Add(Cmd);
-    Proc.Options := [poNoConsole, poDetached];
+    Proc.Parameters.Add('bash');
+    Proc.Parameters.Add('-c');
+    Proc.Parameters.Add(Cmd + '; read -p "Press enter to exit..."');
+    Proc.Options := [poDetached];
     Proc.Execute;
   finally
     Proc.Free;
@@ -145,4 +150,3 @@ begin
 end;
 
 end.
-
