@@ -9,6 +9,9 @@ uses
   SynEdit, SynEditTypes, SynEditMiscClasses, LCLType, Process, StrUtils;
 
 type
+
+  { TForm1 }
+
   TForm1 = class(TForm)
     SynEdit1: TSynEdit;
     procedure FormCreate(Sender: TObject);
@@ -81,13 +84,17 @@ end;
 
 procedure TForm1.SynEdit1SpecialLineMarkup(Sender: TObject; Line: Integer;
   var Special: Boolean; Markup: TSynSelectedColor);
+
 begin
   if (Line = CmdLine) and (CmdStart > 0) and (CmdEnd > CmdStart) then
   begin
     Special := True;
     Markup.Style := [fsUnderline];
+
     Markup.Foreground := clBlue;
-    Markup.Background := clNone;
+    Markup.Background := clBlue;//clNone;
+    //Markup.StartX.Physical := CmdStart + 1;
+    //Markup.EndX.Physical := CmdEnd;
   end;
 end;
 
@@ -137,7 +144,8 @@ var
 begin
   Proc := TProcess.Create(nil);
   try
-    Proc.Executable := 'x-terminal-emulator'; // Use a generic terminal
+//    Proc.Executable := 'x-terminal-emulator'; // Use a generic terminal
+    Proc.Executable := 'xterm';
     Proc.Parameters.Add('-e');
     Proc.Parameters.Add('bash');
     Proc.Parameters.Add('-c');

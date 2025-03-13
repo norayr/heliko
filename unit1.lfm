@@ -21,6 +21,9 @@ object Form1: TForm1
     ParentColor = False
     ParentFont = False
     TabOrder = 0
+    OnClick = SynEdit1Click
+    OnMouseMove = SynEdit1MouseMove
+    OnMouseLeave = SynEdit1MouseLeave
     Gutter.Width = 57
     Gutter.MouseActions = <>
     RightGutter.Width = 0
