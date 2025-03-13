@@ -69,6 +69,7 @@ begin
   //SynEdit1.OnPaint := @SynEdit1Paint;
   SynEdit1.Font.Size := 24;
   //SynEdit1.Options2 := SynEdit1.Options2 + [eoPersistentBlock];
+  Form1.Caption:='heliko';
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
