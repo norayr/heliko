@@ -21,8 +21,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="39"/>
-        <CursorPos X="25" Y="41"/>
+        <TopLine Value="100"/>
+        <CursorPos X="5" Y="120"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -90,18 +90,6 @@
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="../../../../laz/lazarus-3.4/components/synedit/synedit.pp"/>
-        <Caret Line="242" Column="67" TopLine="226"/>
-      </Position>
-      <Position>
-        <Filename Value="../../../../laz/lazarus-3.4/components/synedit/synedit.pp"/>
-        <Caret Line="244" Column="13" TopLine="226"/>
-      </Position>
-      <Position>
-        <Filename Value="../../../../laz/lazarus-3.4/components/synedit/synedit.pp"/>
-        <Caret Line="248" Column="25" TopLine="227"/>
-      </Position>
       <Position>
         <Filename Value="../../../../laz/lazarus-3.4/components/synedit/synedit.pp"/>
         <Caret Line="272" Column="7" TopLine="254"/>
@@ -209,6 +197,18 @@
       <Position>
         <Filename Value="unit1.pas"/>
         <Caret Line="78" Column="31" TopLine="59"/>
+      </Position>
+      <Position>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="43" Column="25" TopLine="41"/>
+      </Position>
+      <Position>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="96" Column="37" TopLine="125"/>
+      </Position>
+      <Position>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="110" TopLine="101"/>
       </Position>
     </JumpHistory>
     <RunParams>

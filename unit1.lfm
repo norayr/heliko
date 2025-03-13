@@ -9,6 +9,7 @@ object Form1: TForm1
   LCLVersion = '3.99.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
+  OnMouseWheel = FormMouseWheel
   inline SynEdit1: TSynEdit
     Left = 0
     Height = 1172
@@ -27,6 +28,7 @@ object Form1: TForm1
     OnMouseMove = SynEdit1MouseMove
     OnMouseUp = SynEdit1MouseUp
     OnMouseLeave = SynEdit1MouseLeave
+    OnMouseWheel = SynEdit1MouseWheel
     Gutter.Width = 57
     Gutter.MouseActions = <>
     RightGutter.Width = 0

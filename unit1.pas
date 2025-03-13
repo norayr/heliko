@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs,
   SynEdit, SynEditTypes, LCLType, Process, LCLIntf, StrUtils,
-  Clipbrd, X, XLib, XUtil; // Added clipboard and X11 libraries
+  Clipbrd, X, XLib, XUtil, Types; // Added clipboard and X11 libraries
 
 type
   { TForm1 }
@@ -15,9 +15,13 @@ type
     SynEdit1: TSynEdit;
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure SynEdit1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure SynEdit1MouseLeave(Sender: TObject);
     procedure SynEdit1Click(Sender: TObject);
+    procedure SynEdit1MouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure SynEdit1Paint(Sender: TObject);
     // this is to prevent disappearing of synedit's own selection
     procedure SynEdit1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -91,6 +95,28 @@ begin
   BaseFontSize := Max(12, Min(BaseFontSize, 36));
 
   SynEdit1.Font.Size := BaseFontSize;
+    OnMouseWheel := @FormMouseWheel;
+    SynEdit1.OnMouseWheel := @FormMouseWheel;
+end;
+
+procedure TForm1.FormMouseWheel(Sender: TObject; Shift: TShiftState;
+  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+var
+  NewSize: Integer;
+begin
+  if (Sender = SynEdit1) and (ssCtrl in Shift) then
+  begin
+    NewSize := SynEdit1.Font.Size;
+
+    // Adjust size based on scroll direction
+    if WheelDelta > 0 then
+      NewSize := NewSize + 2  // Scroll up = larger font
+    else
+      NewSize := Max(8, NewSize - 2); // Scroll down = smaller font (min 8px)
+
+    SynEdit1.Font.Size := NewSize;
+    Handled := True; // Block default scroll behavior
+  end;
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -343,6 +369,12 @@ begin
     ExecuteUnixCommand(Cmd);
   end;
   }
+end;
+
+procedure TForm1.SynEdit1MouseWheel(Sender: TObject; Shift: TShiftState;
+  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+begin
+
 end;
 
 procedure TForm1.SynEdit1Paint(Sender: TObject);
