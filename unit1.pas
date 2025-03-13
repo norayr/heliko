@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs,
-  SynEdit, SynEditTypes, LCLType, Process, LCLIntf, StrUtils;
+  SynEdit, SynEditTypes, LCLType, Process, LCLIntf, StrUtils,
+  Clipbrd, X, XLib, XUtil; // Added clipboard and X11 libraries
 
 type
   { TForm1 }
@@ -24,6 +25,7 @@ type
     function GetCommandUnderMouse(X, Y: Integer): string;
     procedure ExecuteUnixCommand(const Cmd: string);
     procedure ClearCommandPosition;
+    function GetX11Selection: string; // New function to get X11 selection
   public
   end;
 
@@ -36,7 +38,7 @@ implementation
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  SynEdit1.Text := 'Example Unix commands: ;ls -la; or ;uname -a;';
+  SynEdit1.Text := 'Example Unix commands: ;ls -la; or ;uname -a; or ;ls -al ^;';
   ClearCommandPosition;
 
   // Set up our custom paint handler
@@ -133,15 +135,79 @@ begin
   end;
 end;
 
+function TForm1.GetX11Selection: string;
+var
+  Display: PDisplay;
+  Window: TWindow;
+  Selection: TAtom;
+  Target: TAtom;
+  Prop: TAtom;
+  ActualType: TAtom;
+  ActualFormat: LongInt;
+  NItems, BytesAfter: LongInt;
+  Value: PChar;
+  Status: Integer; // Renamed from Success to Status
+begin
+  Result := '';
+  Display := XOpenDisplay(nil);
+  if Display = nil then
+    Exit;
+
+  try
+    Window := XCreateSimpleWindow(Display, RootWindow(Display, DefaultScreen(Display)),
+                                 0, 0, 1, 1, 0, 0, 0);
+
+    Selection := XInternAtom(Display, 'PRIMARY', False);
+    Target := XInternAtom(Display, 'STRING', False);
+    Prop := XInternAtom(Display, 'PENGUIN', False);
+
+    XConvertSelection(Display, Selection, Target, Prop, Window, CurrentTime);
+    XFlush(Display);
+    Sleep(100);
+
+    // Get the selection data using Status (integer) to check the result
+    Status := XGetWindowProperty(Display, Window, Prop, 0, 1024, False,
+                                AnyPropertyType, @ActualType, @ActualFormat,
+                                @NItems, @BytesAfter, @Value);
+
+    if (Status = Success) and (Value <> nil) and (NItems > 0) then
+    begin
+      SetString(Result, Value, NItems);
+      XFree(Value);
+    end;
+
+    XDestroyWindow(Display, Window);
+  finally
+    XCloseDisplay(Display);
+  end;
+end;
+
 procedure TForm1.SynEdit1Click(Sender: TObject);
 var
   MousePos: TPoint;
-  Cmd: string;
+  Cmd, Selection: string;
 begin
   MousePos := SynEdit1.ScreenToClient(Mouse.CursorPos);
   Cmd := GetCommandUnderMouse(MousePos.X, MousePos.Y);
+
   if Cmd <> '' then
+  begin
+    if Pos('^', Cmd) > 0 then
+    begin
+      Selection := Trim(GetX11Selection); // Trim whitespace/newlines from selection
+      if Selection = '' then
+      begin
+        ShowMessage('No X11 selection found! Highlight text in another window first.');
+        Exit; // Abort execution if no selection
+      end;
+      Cmd := StringReplace(Cmd, '^', Selection, [rfReplaceAll]);
+    end;
+
+    // Optional: Debug output to verify the command
+    // ShowMessage('Executing: ' + Cmd);
+
     ExecuteUnixCommand(Cmd);
+  end;
 end;
 
 procedure TForm1.SynEdit1Paint(Sender: TObject);
