@@ -2,6 +2,8 @@
 
 it is inspired of Oberon system and ACME.
 
+[watch in action](https://toobnix.org/w/kQQa6Wy6ETx7PT7JkoRjdN)
+
 keep your favorite commands, or commands you forget often, there.
 
 upon start it opens `~/heliko.txt` file.
