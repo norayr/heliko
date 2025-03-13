@@ -8,6 +8,8 @@ upon start it opens `~/heliko.txt` file.
 
 (copy `heliko.txt` from the current directory to your home)
 
+to increase/decrease font size, use ctrl+mouse wheel.
+
 it contains some commands. commands are enclosed with semicolons.
 
 let's say:
