@@ -4,6 +4,16 @@ it is inspired of Oberon system and ACME.
 
 [watch in action](https://toobnix.org/w/kQQa6Wy6ETx7PT7JkoRjdN)
 
+# reason
+
+this is not a pipe, and that is not "my computer".
+
+i believe, shortcuts are misleading and don't allow people to learn.
+
+this shell helper is designed for kids or unix newbies.
+
+# usage
+
 keep your favorite commands, or commands you forget often, there.
 
 upon start it opens `~/heliko.txt` file.
