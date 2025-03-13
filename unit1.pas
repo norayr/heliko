@@ -63,6 +63,7 @@ begin
 
     ClearCommandPosition;  // Set up our custom paint handler
   //SynEdit1.OnPaint := @SynEdit1Paint;
+  SynEdit1.Font.Size := 24;
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -95,7 +96,6 @@ var
   LineText: string;
   LineIndex: Integer;
   CharPos: Integer;
-  FirstSemicolonPos: Integer;
 begin
   Result := '';
 
@@ -122,38 +122,24 @@ begin
 
   // Find command boundaries
   FCommandStart := RPosEx(';', LineText, CharPos);
-  FirstSemicolonPos := Pos(';', LineText);
-
-  // If no semicolon before cursor, check if command starts at line beginning
   if FCommandStart <= 0 then
   begin
-    if (FirstSemicolonPos > 0) and (CharPos <= FirstSemicolonPos) then
-    begin
-      FCommandStart := 1; // Command starts at beginning of line
-      FCommandEnd := FirstSemicolonPos;
-    end
-    else
-    begin
-      ClearCommandPosition;
-      Exit;
-    end;
-  end
-  else
-  begin
-    // Find next semicolon after FCommandStart
-    FCommandEnd := PosEx(';', LineText, FCommandStart + 1);
-    if FCommandEnd <= FCommandStart then
-    begin
-      ClearCommandPosition;
-      Exit;
-    end;
+    ClearCommandPosition;
+    Exit;
   end;
 
-  // Check if cursor is between boundaries
+  FCommandEnd := PosEx(';', LineText, FCommandStart + 1);
+  if FCommandEnd <= FCommandStart then
+  begin
+    ClearCommandPosition;
+    Exit;
+  end;
+
+  // Check if cursor is between semicolons
   if (CharPos >= FCommandStart) and (CharPos <= FCommandEnd) then
   begin
     FCommandLine := LineIndex;
-    Result := Trim(Copy(LineText, FCommandStart, FCommandEnd - FCommandStart));
+    Result := Trim(Copy(LineText, FCommandStart + 1, FCommandEnd - FCommandStart - 1));
   end
   else
     ClearCommandPosition;
@@ -315,7 +301,8 @@ begin
         ShowMessage('No text selected or copied! Highlight text (PRIMARY) or copy to clipboard (CLIPBOARD) first.');
         Exit;
       end;
-      Cmd := StringReplace(Cmd, '^', Selection, [rfReplaceAll]);
+      // Enclose selection in single quotes to handle spaces
+      Cmd := StringReplace(Cmd, '^', '''' + Selection + '''', [rfReplaceAll]);
     end;
 
     ExecuteUnixCommand(Cmd);
