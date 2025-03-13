@@ -95,6 +95,7 @@ var
   LineText: string;
   LineIndex: Integer;
   CharPos: Integer;
+  FirstSemicolonPos: Integer;
 begin
   Result := '';
 
@@ -121,24 +122,38 @@ begin
 
   // Find command boundaries
   FCommandStart := RPosEx(';', LineText, CharPos);
+  FirstSemicolonPos := Pos(';', LineText);
+
+  // If no semicolon before cursor, check if command starts at line beginning
   if FCommandStart <= 0 then
   begin
-    ClearCommandPosition;
-    Exit;
-  end;
-
-  FCommandEnd := PosEx(';', LineText, FCommandStart + 1);
-  if FCommandEnd <= FCommandStart then
+    if (FirstSemicolonPos > 0) and (CharPos <= FirstSemicolonPos) then
+    begin
+      FCommandStart := 1; // Command starts at beginning of line
+      FCommandEnd := FirstSemicolonPos;
+    end
+    else
+    begin
+      ClearCommandPosition;
+      Exit;
+    end;
+  end
+  else
   begin
-    ClearCommandPosition;
-    Exit;
+    // Find next semicolon after FCommandStart
+    FCommandEnd := PosEx(';', LineText, FCommandStart + 1);
+    if FCommandEnd <= FCommandStart then
+    begin
+      ClearCommandPosition;
+      Exit;
+    end;
   end;
 
-  // Check if cursor is between semicolons
+  // Check if cursor is between boundaries
   if (CharPos >= FCommandStart) and (CharPos <= FCommandEnd) then
   begin
     FCommandLine := LineIndex;
-    Result := Trim(Copy(LineText, FCommandStart + 1, FCommandEnd - FCommandStart - 1));
+    Result := Trim(Copy(LineText, FCommandStart, FCommandEnd - FCommandStart));
   end
   else
     ClearCommandPosition;
