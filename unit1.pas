@@ -19,10 +19,14 @@ type
     procedure SynEdit1MouseLeave(Sender: TObject);
     procedure SynEdit1Click(Sender: TObject);
     procedure SynEdit1Paint(Sender: TObject);
+    // this is to prevent disappearing of synedit's own selection
+    procedure SynEdit1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure SynEdit1MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
     FCommandLine: Integer;
     FCommandStart: Integer;
     FCommandEnd: Integer;
+    FIsClickOnCommand: Boolean;
     function GetCommandUnderMouse(X, Y: Integer): string;
     procedure ExecuteUnixCommand(const Cmd: string);
     procedure ClearCommandPosition;
@@ -64,6 +68,7 @@ begin
     ClearCommandPosition;  // Set up our custom paint handler
   //SynEdit1.OnPaint := @SynEdit1Paint;
   SynEdit1.Font.Size := 24;
+  //SynEdit1.Options2 := SynEdit1.Options2 + [eoPersistentBlock];
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -288,6 +293,9 @@ var
   MousePos: TPoint;
   Cmd, Selection: string;
 begin
+  // Only process left-clicks
+ // if not (ssLeft in Shift) then Exit;
+ {
   MousePos := SynEdit1.ScreenToClient(Mouse.CursorPos);
   Cmd := GetCommandUnderMouse(MousePos.X, MousePos.Y);
 
@@ -295,18 +303,24 @@ begin
   begin
     if Pos('^', Cmd) > 0 then
     begin
-      Selection := Trim(GetX11Selection);
+      // Check SynEdit's selection first
+      if SynEdit1.SelAvail then
+        Selection := Trim(SynEdit1.SelText)
+      else
+        Selection := Trim(GetX11Selection);
+
       if Selection = '' then
       begin
-        ShowMessage('No text selected or copied! Highlight text (PRIMARY) or copy to clipboard (CLIPBOARD) first.');
+        ShowMessage('No text selected!');
         Exit;
       end;
-      // Enclose selection in single quotes to handle spaces
+
       Cmd := StringReplace(Cmd, '^', '''' + Selection + '''', [rfReplaceAll]);
     end;
 
     ExecuteUnixCommand(Cmd);
   end;
+  }
 end;
 
 procedure TForm1.SynEdit1Paint(Sender: TObject);
@@ -348,6 +362,57 @@ begin
     SynEdit1.Canvas.Pen.Width := 1;
     SynEdit1.Canvas.MoveTo(StartX, LineY + SynEdit1.LineHeight - 2);
     SynEdit1.Canvas.LineTo(EndX, LineY + SynEdit1.LineHeight - 2);
+  end;
+end;
+
+procedure TForm1.SynEdit1MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  Cmd: string;
+begin
+  if Button = mbRight then  // Handle right-click only
+  begin
+    Cmd := GetCommandUnderMouse(X, Y);
+    FIsClickOnCommand := (Cmd <> '');
+    if FIsClickOnCommand then
+      Abort; // Suppress default right-click behavior (e.g., context menu)
+  end;
+end;
+
+procedure TForm1.SynEdit1MouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  MousePos: TPoint;
+  Cmd, Selection: string;
+begin
+  if (Button = mbRight) and FIsClickOnCommand then
+  begin
+    FIsClickOnCommand := False;
+    MousePos := SynEdit1.ScreenToClient(Mouse.CursorPos);
+    Cmd := GetCommandUnderMouse(MousePos.X, MousePos.Y);
+
+    if Cmd <> '' then
+    begin
+      if Pos('^', Cmd) > 0 then
+      begin
+        // Use SynEdit's selection if available, else X11
+        if SynEdit1.SelAvail then
+          Selection := Trim(SynEdit1.SelText)
+        else
+          Selection := Trim(GetX11Selection);
+
+        if Selection = '' then
+        begin
+          ShowMessage('No text selected!');
+          Exit;
+        end;
+
+        Cmd := StringReplace(Cmd, '^', '''' + Selection + '''', [rfReplaceAll]);
+      end;
+
+      ExecuteUnixCommand(Cmd);
+    end;
+    Abort; // Prevent SynEdit from processing the right-click
   end;
 end;
 
