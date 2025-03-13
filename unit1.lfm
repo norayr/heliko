@@ -7,6 +7,7 @@ object Form1: TForm1
   ClientHeight = 1172
   ClientWidth = 678
   LCLVersion = '3.99.0.0'
+  OnClose = FormClose
   OnCreate = FormCreate
   inline SynEdit1: TSynEdit
     Left = 0

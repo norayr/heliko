@@ -13,6 +13,7 @@ type
   { TForm1 }
   TForm1 = class(TForm)
     SynEdit1: TSynEdit;
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure SynEdit1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure SynEdit1MouseLeave(Sender: TObject);
@@ -37,12 +38,48 @@ implementation
 {$R *.lfm}
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  HomeDir, FilePath: string;
+  Lines: TStringList;
 begin
-  SynEdit1.Text := 'Example Unix commands: ;ls -la; or ;uname -a; or ;ls -al ^;';
-  ClearCommandPosition;
+  // Hide the gutter (line numbers)
+  SynEdit1.Gutter.Visible := False;
 
-  // Set up our custom paint handler
+  // Load commands from ~/heliko.txt
+  HomeDir := GetEnvironmentVariable('HOME');
+  FilePath := IncludeTrailingPathDelimiter(HomeDir) + 'heliko.txt';
+  if FileExists(FilePath) then
+  begin
+    Lines := TStringList.Create;
+    try
+      Lines.LoadFromFile(FilePath);
+      SynEdit1.Text := Lines.Text;
+    finally
+      Lines.Free;
+    end;
+  end
+  else
+    SynEdit1.Text := 'Example Unix commands: ;ls -la; or ;uname -a; or ;ls -al ^;';
+
+    ClearCommandPosition;  // Set up our custom paint handler
   //SynEdit1.OnPaint := @SynEdit1Paint;
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+var
+  HomeDir, FilePath: string;
+  Lines: TStringList;
+begin
+  // Save commands to ~/heliko.txt
+  HomeDir := GetEnvironmentVariable('HOME');
+  FilePath := IncludeTrailingPathDelimiter(HomeDir) + 'heliko.txt';
+  Lines := TStringList.Create;
+  try
+    Lines.Text := SynEdit1.Text;
+    Lines.SaveToFile(FilePath);
+  finally
+    Lines.Free;
+  end;
 end;
 
 procedure TForm1.ClearCommandPosition;
