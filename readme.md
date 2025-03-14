@@ -4,13 +4,19 @@ it is inspired of Oberon system and ACME.
 
 [watch in action](https://toobnix.org/w/kQQa6Wy6ETx7PT7JkoRjdN)
 
-# reason
+# why?
 
-this is not a pipe, and that is not "my computer".
+i wanted to create a program for kids or unix newbies to start using computers.
 
-i believe, shortcuts are misleading and don't allow people to learn.
+i think that shortcuts make things worse in terms of education: this is not a pipe, and that is not 'my computer', one needs to understand that there are programs, directories and program arguments.
 
-this shell helper is designed for kids or unix newbies.
+- do we need to type it all? - often ask those presented with a terminal.
+
+no, you don't. choose from the commands here, select and click.
+
+add to the list the commands and arguments you are using often.
+
+i believe, when wm starts, user should only see this window. no menus or shortcuts.
 
 # usage
 
