@@ -1,26 +1,36 @@
-;uname -a;
+info about your machine: ; uname -a;
 
-;ls -al ^;
+date, time, cal:
+
+; date;  ;cal ;  ;watch date ;
+
+; cal -y $(date +%Y );
+; cal -y $(date -d "next year" +%Y);
+; cal $(date -d "next month" +%m) $(date -d "next month" +%Y);
 
 
-;ls ~/*.jpg;
+; ls -al ^;
+
+to list all jpg files in your home
+; ls ~/*.jpg;
 
 ;xv ^;
 
 ;xv /home/inky/^;
 
-;ls /amp/tmp/films/japan/ ;
+;ls /tmp/films/ ;
 
 
-/amp/tmp/films
+/tmp/films
 
+; gimp;
 
-;find ^  -type f -name "*.mp4";
+;find ^  -type f -name "*.webm";
 
 
 ;find ^ -mindepth 1 -maxdepth 1  ;
 
-;mplayer ^;
+;mplayer ^ -vo gl;
 
 
 To fix/clear clipboard/selection:
