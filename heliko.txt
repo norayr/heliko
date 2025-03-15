@@ -1,18 +1,24 @@
 info about your machine: ; uname -a;
 
-date, time, cal:
-
-; date;  ;cal ;  ;watch date ;
+; date;  ;cal ;  ;watch date ;  <-- click
 
 ; cal -y $(date +%Y );
 ; cal -y $(date -d "next year" +%Y);
 ; cal $(date -d "next month" +%m) $(date -d "next month" +%Y);
 
+click ; man cal; to learn more about cal
+
+select one of the expressions below
+    5*2+40-8          3*(2+8)-7
+; echo ^ |bc;   <-- and click here
+
+; man bc; to learn more.
+
 
 ; ls -al ^;
 
 to list all jpg files in your home
-; ls ~/*.jpg;
+; ls ~/Pictures/*.jpg;
 
 ;xv ^;
 

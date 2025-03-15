@@ -42,4 +42,4 @@ FPC = fpc
 # Default target to build the project
 all:
 	lazbuild $(PROJECT)
-
+	cp heliko.txt ~/heliko.txt

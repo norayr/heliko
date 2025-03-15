@@ -105,8 +105,8 @@ begin
   ConfigPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME')) + '.heliko.conf';
   Ini := TIniFile.Create(ConfigPath);
   try
-    Width := Ini.ReadInteger('Window', 'Width', Round(ScreenWidth/3));
-    Height := Ini.ReadInteger('Window', 'Height', Round(ScreenHeight-ScreenHeight/15));
+    Width := Ini.ReadInteger('Window', 'Width', Round(ScreenWidth/2.3));
+    Height := Ini.ReadInteger('Window', 'Height', Round(ScreenHeight-ScreenHeight/7));
   finally
     Ini.Free;
   end;
