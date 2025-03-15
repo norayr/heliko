@@ -17,6 +17,7 @@ uses
 
 begin
   RequireDerivedFormResource:=True;
+  Application.Title:='heliko';
   Application.Scaled:=True;
   Application.MainFormOnTaskbar:=True;
   Application.Initialize;
