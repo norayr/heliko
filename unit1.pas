@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs,
-  SynEdit, SynEditTypes, LCLType, Process, LCLIntf, StrUtils;
+  SynEdit, SynEditTypes, LCLType, Process, LCLIntf, StrUtils,
+  IniFiles;
 
 type
   { TForm1 }
@@ -52,6 +53,9 @@ var
   ScreenWidth, ScreenHeight: Integer;
   BaseFontSize: Integer;
   ScalingFactor: Double;
+
+  Ini: TIniFile;
+  ConfigPath: string;
 begin
   // Hide the gutter (line numbers)
   SynEdit1.Gutter.Visible := False;
@@ -96,6 +100,16 @@ begin
   SynEdit1.Font.Size := BaseFontSize;
     OnMouseWheel := @FormMouseWheel;
     SynEdit1.OnMouseWheel := @FormMouseWheel;
+
+
+  ConfigPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME')) + '.heliko.conf';
+  Ini := TIniFile.Create(ConfigPath);
+  try
+    Width := Ini.ReadInteger('Window', 'Width', Round(ScreenWidth/3));
+    Height := Ini.ReadInteger('Window', 'Height', Round(ScreenHeight-ScreenHeight/15));
+  finally
+    Ini.Free;
+  end;
 end;
 
 procedure TForm1.FormMouseWheel(Sender: TObject; Shift: TShiftState;
@@ -122,6 +136,9 @@ procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 var
   HomeDir, FilePath: string;
   Lines: TStringList;
+
+  Ini: TIniFile;
+  ConfigPath: string;
 begin
   // Save commands to ~/heliko.txt
   HomeDir := GetEnvironmentVariable('HOME');
@@ -132,6 +149,15 @@ begin
     Lines.SaveToFile(FilePath);
   finally
     Lines.Free;
+  end;
+
+  ConfigPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME')) + '.heliko.conf';
+  Ini := TIniFile.Create(ConfigPath);
+  try
+    Ini.WriteInteger('Window', 'Width', Width);
+    Ini.WriteInteger('Window', 'Height', Height);
+  finally
+    Ini.Free;
   end;
 end;
 
