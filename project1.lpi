@@ -38,6 +38,7 @@
       <Unit>
         <Filename Value="project1.lpr"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="heliko"/>
       </Unit>
       <Unit>
         <Filename Value="unit1.pas"/>
@@ -45,12 +46,15 @@
         <ComponentName Value="Form1"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="Unit1"/>
       </Unit>
       <Unit>
         <Filename Value="xselection.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="xSelection"/>
+      </Unit>
+      <Unit>
+        <Filename Value="baseeditform.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
   </ProjectOptions>

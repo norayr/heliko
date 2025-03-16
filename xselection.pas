@@ -45,7 +45,7 @@ begin
     XFlush(Display);
 
     // Wait for SelectionNotify event with timeout
-    Timeout := 1000; // 1 second
+    Timeout := 2000; // 1 second
     StartTime := GetTickCount64;
     while (GetTickCount64 - StartTime < Timeout) do
     begin
@@ -107,7 +107,7 @@ begin
     end;
    }
        // Process result
-    if (Status = Success) and (Value <> nil) then
+   { if (Status = Success) and (Value <> nil) then
     begin
       if NItems > 0 then
         SetString(Result, Value, NItems) // Use NItems if valid
@@ -118,7 +118,26 @@ begin
     XDestroyWindow(Display, Window);
   finally
     XCloseDisplay(Display);
-  end;
+  end;}
+    if (Status = Success) and (Value <> nil) then
+     begin
+       if NItems > 0 then
+         SetString(Result, Value, NItems)
+       else
+         Result := StrPas(Value);
+       XFree(Value);
+
+       // Trim and handle empty results
+       Result := Trim(Result);
+     end;
+
+     // Fallback to clipboard if X11 selection is empty
+     if Result = '' then
+       Result := Clipboard.AsText;
+
+   finally
+     XCloseDisplay(Display);
+   end;
 end;
 
 
