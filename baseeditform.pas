@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs,
   SynEdit, SynEditTypes, LCLType, Process, LCLIntf, StrUtils,
-  IniFiles, xSelection;
+  IniFiles, Clipbrd, xSelection;
 
 type
   TBaseEditForm = class(TForm)
@@ -36,15 +36,90 @@ type
     procedure RunCommandInWindow(const Cmd: string);
   private
     FSynEdit: TSynEdit;
+    FLastSelectionUpdate: QWord;
+    FSelectionDebounceDelay: Integer;
+    FLastSelText: string;
+    FSharedSelection: string;
+    class procedure CheckSelectionTimerEvent(Sender: TObject);
+    procedure HandleSynEditCopy(Sender: TObject; var AText: string;
+  var AMode: TSynSelectionMode; ALogStartPos: TPoint;
+  var AnAction: TSynCopyPasteAction);
+    procedure HandleSynEditStatusChange(Sender: TObject;
+  Changes: TSynStatusChanges);
   public
     class var UseXTerm: Boolean;
+    class var SharedSelection: string;
     property SynEdit: TSynEdit read FSynEdit;
   end;
 
 implementation
 
 uses
-  Math, DateUtils;
+  Math, //for max
+  DateUtils,
+  ExtCtrls; //for ttimer
+
+class procedure TBaseEditForm.CheckSelectionTimerEvent(Sender: TObject);
+var
+  Timer: TTimer;
+  OutputForm: TBaseEditForm;
+  CurrentSelText: string;
+begin
+  Timer := TTimer(Sender);
+  OutputForm := TBaseEditForm(Timer.Tag);
+
+  if (OutputForm <> nil) and (OutputForm.SynEdit <> nil) and OutputForm.SynEdit.SelAvail then
+  begin
+    CurrentSelText := OutputForm.SynEdit.SelText;
+
+    // Always update on any selection (don't skip if same as last)
+    OutputForm.FLastSelText := CurrentSelText;
+
+    // Store in class-wide variable for sharing between instances
+    TBaseEditForm.SharedSelection := CurrentSelText;
+
+    // Update both clipboard mechanisms
+    try
+      Clipboard.AsText := CurrentSelText;
+    except
+      // Handle clipboard error silently
+    end;
+
+    SetX11Selection(CurrentSelText);
+
+    // For debugging
+    //OutputForm.Caption := 'Selected: ' + Copy(CurrentSelText, 1, 20) + '...';
+  end;
+end;
+
+procedure TBaseEditForm.HandleSynEditStatusChange(Sender: TObject;
+  Changes: TSynStatusChanges);
+begin
+  if (scSelection in Changes) and SynEdit.SelAvail then
+  begin
+    // Always update selections immediately
+    TBaseEditForm.SharedSelection := SynEdit.SelText;
+    SetX11Selection(SynEdit.SelText);
+    FLastSelectionUpdate := GetTickCount64;
+
+    try
+      Clipboard.AsText := SynEdit.SelText;
+    except
+      // Handle clipboard error silently
+    end;
+  end;
+end;
+
+procedure TBaseEditForm.HandleSynEditCopy(Sender: TObject; var AText: string;
+  var AMode: TSynSelectionMode; ALogStartPos: TPoint;
+  var AnAction: TSynCopyPasteAction);
+begin
+  if SynEdit.SelAvail then
+  begin
+    Clipboard.AsText := SynEdit.SelText;
+    SetX11Selection(SynEdit.SelText);
+  end;
+end;
 
 procedure TBaseEditForm.FormCreate(Sender: TObject);
 var
@@ -77,18 +152,24 @@ begin
   FSynEdit.Parent := Self;
   FSynEdit.Align := alClient;
   FSynEdit.Gutter.Visible := False;
-
+  FSelectionDebounceDelay := 200;
+  FLastSelText := '';
 
   Width := 800;
   Height := 600;
 
-    FormCreate(Self);
-     FSynEdit.OnMouseMove := @SynEditMouseMove;
+  FormCreate(Self);
+
+  FSynEdit.OnMouseMove := @SynEditMouseMove;
   FSynEdit.OnMouseLeave := @SynEditMouseLeave;
   FSynEdit.OnPaint := @SynEditPaint;
   FSynEdit.OnMouseDown := @SynEditMouseDown;
   FSynEdit.OnMouseUp := @SynEditMouseUp;
 
+  FSynEdit.OnCutCopy := @HandleSynEditCopy;  // Works for both Ctrl+C and right-click copy
+  FSynEdit.OnStatusChange := @HandleSynEditStatusChange;  // Track selection changes
+
+  InitializeX11Selection;
 end;
 
 procedure TBaseEditForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -129,6 +210,7 @@ begin
     RunCommandInTerminal(Cmd)
   else
     RunCommandInWindow(Cmd);
+    //RunCommandInWindow(Cmd + ' < /dev/null');
 end;
 
 procedure TBaseEditForm.RunCommandInTerminal(const Cmd: string);
@@ -150,7 +232,6 @@ begin
   end;
 end;
 
-// Then modify the RunCommandInWindow procedure:
 procedure TBaseEditForm.RunCommandInWindow(const Cmd: string);
 var
   OutputForm: TBaseEditForm;
@@ -163,6 +244,7 @@ var
   StartTime: TDateTime;
   TimeoutSecs: Integer;
   ElapsedSecs: Integer;
+  SelectionTimer: TTimer;
 begin
   OutputForm := TBaseEditForm.CreateNew(Application);
   try
@@ -170,6 +252,20 @@ begin
     OutputForm.Show;
     OutputForm.SynEdit.Text := '> ' + Cmd + LineEnding + LineEnding;
 
+    OutputForm.SynEdit.OnStatusChange := @OutputForm.HandleSynEditStatusChange;
+    OutputForm.SynEdit.OnCutCopy := @OutputForm.HandleSynEditCopy;
+
+    // Create timer for selection monitoring with faster interval
+    SelectionTimer := TTimer.Create(OutputForm);
+    SelectionTimer.Interval := 50; // Check every 50ms instead of 100ms
+    SelectionTimer.Tag := PtrInt(OutputForm); // Store OutputForm reference in Tag
+    SelectionTimer.OnTimer := @CheckSelectionTimerEvent;
+    SelectionTimer.Enabled := True;
+
+    // Make the output window selection immediately active for HandleSynEditStatusChange
+    OutputForm.FSelectionDebounceDelay := 0; // No delay for selection updates
+
+    // Rest of the procedure remains the same...
     Proc := TProcess.Create(nil);
     try
       Proc.Executable := '/bin/sh';
@@ -204,7 +300,7 @@ begin
         BytesRead := Proc.Output.NumBytesAvailable;
         if BytesRead > 0 then
         begin
-          FillByte(Buffer, SizeOf(Buffer), 0); // Initialize buffer
+          FillChar(Buffer, SizeOf(Buffer), 0);
           BytesRead := Proc.Output.Read(Buffer, SizeOf(Buffer));
           SetString(s, Buffer, BytesRead);
           OutputForm.SynEdit.Text := OutputForm.SynEdit.Text + s;
@@ -220,7 +316,7 @@ begin
         BytesRead := Proc.Output.NumBytesAvailable;
         if BytesRead > 0 then
         begin
-          FillByte(Buffer, SizeOf(Buffer), 0); // Initialize buffer
+          FillChar(Buffer, SizeOf(Buffer), 0);
           BytesRead := Proc.Output.Read(Buffer, SizeOf(Buffer));
           SetString(s, Buffer, BytesRead);
           OutputForm.SynEdit.Text := OutputForm.SynEdit.Text + s;
@@ -406,10 +502,36 @@ begin
       if Pos('^', Cmd) > 0 then
       begin
         // Use SynEdit's selection if available, else X11
-        if SynEdit.SelAvail then
+       { if SynEdit.SelAvail then
           Selection := Trim(SynEdit.SelText)
         else
           Selection := Trim(GetX11Selection);
+        }
+
+
+         // Try multiple sources for selection in this order:
+        // 1. Current SynEdit selection
+        // 2. Our shared class variable (populated by timer)
+        // 3. System clipboard
+        // 4. X11 selection
+
+        if SynEdit.SelAvail then
+          Selection := Trim(SynEdit.SelText)
+        else if TBaseEditForm.SharedSelection <> '' then
+          Selection := Trim(TBaseEditForm.SharedSelection)
+        else
+        begin
+          // Try clipboard
+          try
+            Selection := Trim(Clipboard.AsText);
+          except
+            Selection := '';
+          end;
+
+          // If clipboard was empty, try X11 selection
+          if Selection = '' then
+            Selection := Trim(GetX11Selection);
+        end;
 
         if Selection = '' then
         begin
@@ -417,9 +539,10 @@ begin
           Exit;
         end;
 
+
        // Cmd := StringReplace(Cmd, '^', '''' + Selection + '''', [rfReplaceAll]);
        Selection := StringReplace(Selection, '''', '''"''"''', [rfReplaceAll]);
-      Cmd := StringReplace(Cmd, '^', '''' + Selection + '''', [rfReplaceAll]);
+       Cmd := StringReplace(Cmd, '^', '''' + Selection + '''', [rfReplaceAll]);
       end;
 
       ExecuteCommand(Cmd);
@@ -428,6 +551,7 @@ begin
   end;
 end;
 
-
+initialization
+  TBaseEditForm.SharedSelection := '';
 
 end.
