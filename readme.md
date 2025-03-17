@@ -2,7 +2,7 @@
 
 it is inspired of Oberon system and ACME.
 
-[watch in action](https://toobnix.org/w/jNRdxiUApvrwYJWQNstGTW)
+[watch in action](https://toobnix.org/w/41mCUgh13MrmPKjVsFRiMS)
 
 [text about heliko in armenian](https://norayr.am/weblog/2025/03/14/27581431/).
 
