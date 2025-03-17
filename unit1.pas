@@ -25,6 +25,20 @@ var
 implementation
 
 {$R *.lfm}
+procedure WriteHelpOnConsole;
+begin
+  WriteLn('heliko - Command execution tool');
+  WriteLn('');
+  WriteLn('Usage: heliko [OPTIONS] [FILE]');
+  WriteLn('');
+  WriteLn('Options:');
+  WriteLn('  --help    Show this help message and exit');
+  WriteLn('  --xterm   Execute commands in xterm instead of internal window');
+  WriteLn('');
+  WriteLn('Arguments:');
+  WriteLn('  FILE      Optional path to load commands from (default: ~/heliko.txt)');
+  Halt(0);
+end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
@@ -83,7 +97,7 @@ begin
    for i := 1 to ParamCount do
    begin
      if ParamStr(i) = '--help' then
-       ShowHelp;
+       WriteHelpOnConsole;
 
      if ParamStr(i) = '--xterm' then
        TBaseEditForm.UseXTerm := True

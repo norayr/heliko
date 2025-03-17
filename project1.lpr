@@ -17,21 +17,6 @@ uses
 
 {$R *.res}
 
-procedure ShowHelp;
-begin
-  WriteLn('heliko - Command execution tool');
-  WriteLn('');
-  WriteLn('Usage: heliko [OPTIONS] [FILE]');
-  WriteLn('');
-  WriteLn('Options:');
-  WriteLn('  --help    Show this help message and exit');
-  WriteLn('  --xterm   Execute commands in xterm instead of internal window');
-  WriteLn('');
-  WriteLn('Arguments:');
-  WriteLn('  FILE      Optional path to load commands from (default: ~/heliko.txt)');
-  Halt(0);
-end;
-
 begin
   RequireDerivedFormResource := False;
   //RequireDerivedFormResource:=True;
