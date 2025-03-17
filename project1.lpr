@@ -17,6 +17,21 @@ uses
 
 {$R *.res}
 
+procedure ShowHelp;
+begin
+  WriteLn('heliko - Command execution tool');
+  WriteLn('');
+  WriteLn('Usage: heliko [OPTIONS] [FILE]');
+  WriteLn('');
+  WriteLn('Options:');
+  WriteLn('  --help    Show this help message and exit');
+  WriteLn('  --xterm   Execute commands in xterm instead of internal window');
+  WriteLn('');
+  WriteLn('Arguments:');
+  WriteLn('  FILE      Optional path to load commands from (default: ~/heliko.txt)');
+  Halt(0);
+end;
+
 begin
   RequireDerivedFormResource := False;
   //RequireDerivedFormResource:=True;
@@ -24,14 +39,12 @@ begin
   Application.Scaled:=True;
   Application.MainFormOnTaskbar:=True;
 
-   if ParamCount > 0 then
-  begin
-    if ParamStr(1) = '--xterm' then
-      TBaseEditForm.UseXTerm := True;
-  end;
+
 
   Application.Initialize;
   Application.CreateForm(TForm1, Form1);
+
+
   Application.Run;
 end.
 

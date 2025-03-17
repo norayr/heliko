@@ -7,6 +7,8 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, baseeditform, IniFiles;
 
+const defaultFile = 'heliko.txt';
+
 type
   TForm1 = class(TBaseEditForm)
     procedure FormCreate(Sender: TObject); override;
@@ -70,16 +72,32 @@ end;
 
 procedure TForm1.LoadCommands;
 var
-  HomeDir, FilePath: string;
+  HomeDir: string;
   Lines: TStringList;
+  customFile: string;
+  i: integer;
 begin
-  HomeDir := GetEnvironmentVariable('HOME');
-  FilePath := IncludeTrailingPathDelimiter(HomeDir) + 'heliko.txt';
-  if FileExists(FilePath) then
+   HomeDir := GetEnvironmentVariable('HOME');
+   customFile := IncludeTrailingPathDelimiter(HomeDir) + defaultFile;
+
+   for i := 1 to ParamCount do
+   begin
+     if ParamStr(i) = '--help' then
+       ShowHelp;
+
+     if ParamStr(i) = '--xterm' then
+       TBaseEditForm.UseXTerm := True
+     else if (ParamStr(i)[1] <> '-') then
+       customFile := ParamStr(i);
+   end;
+
+    if customFile <> '' then
+
+  if FileExists(customFile) then
   begin
     Lines := TStringList.Create;
     try
-      Lines.LoadFromFile(FilePath);
+      Lines.LoadFromFile(customFile);
       SynEdit.Text := Lines.Text;
     finally
       Lines.Free;
