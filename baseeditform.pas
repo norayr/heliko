@@ -166,6 +166,10 @@ begin
   FSynEdit.OnMouseDown := @SynEditMouseDown;
   FSynEdit.OnMouseUp := @SynEditMouseUp;
 
+  OnMouseWheel := @FormMouseWheel;
+  FSynEdit.OnMouseWheel := @FormMouseWheel;
+
+
   FSynEdit.OnCutCopy := @HandleSynEditCopy;  // Works for both Ctrl+C and right-click copy
   FSynEdit.OnStatusChange := @HandleSynEditStatusChange;  // Track selection changes
 
