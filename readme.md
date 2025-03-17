@@ -26,6 +26,12 @@ keep your favorite commands, or commands you forget often, there.
 
 upon start it opens `~/heliko.txt` file.
 
+or you can use it as `heliko FILE` where file can be custom file path.
+
+if you want output to be send to xterm instead, then `heliko --xterm`
+
+`heliko --help` to see all the options.
+
 (copy `heliko.txt` from the current directory to your home)
 
 to increase/decrease font size, use ctrl+mouse wheel.
