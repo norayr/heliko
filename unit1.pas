@@ -14,6 +14,7 @@ type
     procedure FormCreate(Sender: TObject); override;
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
   private
+    FCurrentFile: string;
     procedure LoadConfig;
     procedure SaveConfig;
     procedure LoadCommands;
@@ -49,8 +50,19 @@ begin
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+VAR Lines: TStringList;
 begin
   SaveConfig;
+    if (FCurrentFile <> '') and SynEdit.Modified then
+  begin
+    Lines := TStringList.Create;
+    try
+      Lines.Text := SynEdit.Text;
+      Lines.SaveToFile(FCurrentFile);
+    finally
+      Lines.Free;
+    end;
+  end;
   inherited;
 end;
 
@@ -91,6 +103,7 @@ var
   customFile: string;
   i: integer;
 begin
+   Form1.FCurrentFile := '';
    HomeDir := GetEnvironmentVariable('HOME');
    customFile := IncludeTrailingPathDelimiter(HomeDir) + defaultFile;
 
@@ -107,20 +120,22 @@ begin
 
     if customFile <> '' then
 
-  if FileExists(customFile) then
-  begin
-    Lines := TStringList.Create;
-    try
-      Lines.LoadFromFile(customFile);
-      SynEdit.Text := Lines.Text;
-    finally
-      Lines.Free;
-    end;
-  end
- else
-  begin
-    SynEdit.Text := 'Example Unix commands: ;cal; or ;ls -al ~/; or ;ls -al ^; (select path to substitute with ^)';
-  end;
+      if FileExists(customFile) then
+      begin
+        FCurrentFile := customFile;
+        Lines := TStringList.Create;
+        try
+          Lines.LoadFromFile(customFile);
+          SynEdit.Text := Lines.Text;
+        finally
+          Lines.Free;
+        end;
+      end
+     else
+      begin
+        SynEdit.Text := 'Example Unix commands: ;cal; or ;ls -al ~/; or ;ls -al ^; (select path to substitute with ^)';
+      end;
+      SynEdit.Modified := False;
 end;
 
 
